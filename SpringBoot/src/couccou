@@ -1,0 +1,38 @@
+
+
+ @GetMapping("assurance/{mois}")
+    public Avion[]assurance1mois(@PathVariable int mois) throws Exception {
+        String sql="select idAvion,model,nom  from  v_assurance where restant >0 and restant<="+mois*30;
+        return Avion.getAllAvion(sql);
+    }
+
+
+     @GetMapping("/avions")
+        public Avion[]listeAvion() throws Exception {
+            String sql="select idAvion,nom,model,path from v_profil";
+            return Avion.getAllAvion(sql);
+        }
+
+
+
+        public static Avion[]getAllAvion(String sql) throws Exception {
+                Vector<Object>[]all= FonctionBase.select(sql);
+                Vector<Avion>avions=new Vector<>();
+                for (int i = 0; i <all[0].size() ; i++) {
+                    Avion avion=new Avion();
+                    avion.setIdAvion(Long.parseLong( all[0].elementAt(i).toString()));
+                    avion.setNom((String) all[1].elementAt(i));
+                    avion.setModel((String) all[2].elementAt(i));
+                    avion.setPath((String) all[3].elementAt(i));
+                    avions.add(avion);
+                }
+                Avion[]listeAll=new Avion[avions.size()];
+                for (int i = 0; i < listeAll.length ; i++) {
+                    listeAll[i]=avions.elementAt(i);
+                }
+                return listeAll;
+            }
+
+
+
+            create or replace  view v_assurance as select A.idAvion,model,nom,daty,Type, daty+(Type*30) as datefin,  daty+(Type*30)- date (now()) as restant  from assurance join Avion A on Assurance.idAvion = A.idAvion join TypeAssurance TA on TA.idType = Assurance.idType where daty in (select max(daty) from Assurance join Avion A2 on A2.idAvion = Assurance.idAvion group by A2.idAvion);
